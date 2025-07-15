@@ -25,16 +25,23 @@ class BlockchainService {
     myAddress = _credentials.address;
     contractAddress = EthereumAddress.fromHex(contractAddressHex);
 
+    // 👇 Load ABI as a list (not a wrapped object)
     final abiString = await rootBundle.loadString(abiPath);
-    final jsonFile = jsonDecode(abiString);
-    final abi = jsonFile['abi'];
+    final abi = jsonEncode(jsonDecode(abiString)); // Just parse and re-encode
 
     _contract = DeployedContract(
-      ContractAbi.fromJson(jsonEncode(abi), "V2GEnergySystem"),
+      ContractAbi.fromJson(abi, "V2GEnergySystem"),
       contractAddress,
     );
 
     _initialized = true;
+
+    try {
+      final tokenName = await getTokenName();
+      print("✅ Token Name: $tokenName");
+    } catch (e) {
+      print("⚠️ Failed to fetch token name: $e");
+    }
   }
 
   Future<List<dynamic>> callFunction(String name, List<dynamic> args) async {
@@ -56,7 +63,7 @@ class BlockchainService {
         parameters: args,
         value: value != null ? EtherAmount.inWei(value) : null,
       ),
-      chainId: 11155111,
+      chainId: 11155111, // Sepolia
     );
   }
 
@@ -66,7 +73,7 @@ class BlockchainService {
     required BigInt minBatteryLevel,
   }) async {
     return await sendTransaction(
-      "registerEVOwner",
+      'registerEVOwner',
       [vehicleNo, fullCapacity, minBatteryLevel],
     );
   }
@@ -78,7 +85,7 @@ class BlockchainService {
 
   Future<bool> isRegistered(String addressHex) async {
     final address = EthereumAddress.fromHex(addressHex);
-    final result = await callFunction("isRegisteredEVOwner", [address]);
+    final result = await callFunction('isRegisteredEVOwner', [address]);
     return result[0] as bool;
   }
 }

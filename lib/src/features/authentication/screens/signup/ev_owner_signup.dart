@@ -51,7 +51,7 @@ class _EvOwnerSignupState extends State<EvOwnerSignup> {
             const SizedBox(height: 20),
             GestureDetector(
               onTap: () async {
-                // Basic validation
+                // Validate all fields
                 if (controller.password.text.isEmpty ||
                     controller.rePassword.text.isEmpty) {
                   showPopupDialog(context, 'Password fields cannot be empty!', 'Error!');
@@ -71,6 +71,12 @@ class _EvOwnerSignupState extends State<EvOwnerSignup> {
                   return;
                 }
 
+                // ✅ Validate wallet address
+                if (!isValidEthereumAddress(_walletAddressController.text.trim())) {
+                  showPopupDialog(context, 'Invalid Ethereum wallet address!', 'Error!');
+                  return;
+                }
+
                 // Firebase registration
                 String? errorMessage = await controller.registerUser(
                   controller.email.text.trim(),
@@ -78,7 +84,6 @@ class _EvOwnerSignupState extends State<EvOwnerSignup> {
                 );
 
                 if (errorMessage == null) {
-                  // You might want to save _walletAddressController.text to Firestore here
                   await showPopupDialog(context, 'Registration Successful!', 'Success');
                   Get.offAll(() => const evDash());
                 } else {
@@ -142,5 +147,11 @@ class _EvOwnerSignupState extends State<EvOwnerSignup> {
         );
       },
     );
+  }
+
+  /// ✅ Validate Ethereum address format
+  bool isValidEthereumAddress(String address) {
+    final regex = RegExp(r'^0x[a-fA-F0-9]{40}$');
+    return regex.hasMatch(address);
   }
 }
