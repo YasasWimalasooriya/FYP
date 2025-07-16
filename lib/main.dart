@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:v2g_app/firebase_options.dart';
 import 'package:v2g_app/src/features/authentication/screens/welcome/welcome.dart';
 import 'package:v2g_app/services/blockchain_service.dart';
+import 'src/features/core/screens/purchase_energy_tokens/purchase_energy_tokens.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -19,9 +20,16 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
+    return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: Intropage(),
+      title: 'V2G Energy App',
+      home: const Intropage(),
+
+      // ✅ Define your named routes here
+      routes: {
+        '/chargeVehicle': (context) => const PurchaseEnergyTokensPage(),
+        // You can add more routes here if needed
+      },
     );
   }
 }

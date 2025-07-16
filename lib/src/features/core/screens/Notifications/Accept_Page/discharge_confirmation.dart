@@ -82,7 +82,8 @@ class _DischargeConfirmationState extends State<DischargeConfirmation> {
           .update({
         'dischargedEnergy': energyDischarged,
         'status': 'Discharged',
-      });
+      }
+      );
 
       await FirebaseFirestore.instance.collection('discharged_requests').add({
         'notificationId': widget.docId,
@@ -112,10 +113,16 @@ class _DischargeConfirmationState extends State<DischargeConfirmation> {
 
   @override
   Widget build(BuildContext context) {
+    // Calculate discharge limit
+    double requiredEnergy = widget.destinationDistance / widget.vehicleEfficiency;
+    requiredEnergy *= 1.10; // Add 10% buffer
+    double dischargeLimit = widget.batteryLevel - requiredEnergy;
+    bool isDischargePossible = dischargeLimit > 0;
+
     return Scaffold(
       backgroundColor: Colors.green[200],
       appBar: AppBar(
-        title: const Text("Discharge In Progress", style: TextStyle(color: Colors.white)),
+        title: const Text("Discharge Confirmation", style: TextStyle(color: Colors.white)),
         backgroundColor: Colors.green[900],
         iconTheme: const IconThemeData(color: Colors.white),
       ),
@@ -137,12 +144,33 @@ class _DischargeConfirmationState extends State<DischargeConfirmation> {
                 style: const TextStyle(fontSize: 18),
                 textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 30),
+              const SizedBox(height: 20),
+
+              // New message
+              if (isDischargePossible)
+                Text(
+                  "You can discharge up to ${dischargeLimit.toStringAsFixed(2)} kWh safely.",
+                  style: const TextStyle(
+                    fontSize: 16,
+                    color: Colors.black87,
+                    fontWeight: FontWeight.w500,
+                  ),
+                  textAlign: TextAlign.center,
+                )
+              else
+                const Text(
+                  "Not enough battery to safely discharge energy.",
+                  style: TextStyle(fontSize: 16, color: Colors.red),
+                  textAlign: TextAlign.center,
+                ),
+
+              const SizedBox(height: 20),
+
               TextField(
                 controller: _energyController,
                 keyboardType: TextInputType.number,
                 decoration: const InputDecoration(
-                  labelText: "Enter Energy to Discharge (kWh)",
+                  labelText: "Enter Amount of Energy Willing to Discharge (kWh)",
                   border: OutlineInputBorder(),
                 ),
               ),
@@ -150,7 +178,7 @@ class _DischargeConfirmationState extends State<DischargeConfirmation> {
               _isLoading
                   ? const CircularProgressIndicator(color: Colors.green)
                   : ElevatedButton(
-                onPressed: submitDischarge,
+                onPressed: isDischargePossible ? submitDischarge : null,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.green[900],
                   padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 15),

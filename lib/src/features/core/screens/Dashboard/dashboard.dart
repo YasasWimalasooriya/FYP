@@ -171,61 +171,72 @@ class _evDashState extends State<evDash> {
           ],
         ),
       ),
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.start,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Image.asset(
-                'assets/images/image4.jpg',
-                width: double.infinity,
-                height: 200,
-                fit: BoxFit.cover,
-              ),
-              const SizedBox(height: 20),
-
-              _dashboardButton(
-                context,
-                icon: Icons.notifications,
-                text: "Notifications",
-                onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const Notifications()),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Image.asset(
+                  'assets/images/image4.jpg',
+                  width: double.infinity,
+                  height: 200,
+                  fit: BoxFit.cover,
                 ),
-              ),
-              const SizedBox(height: 20),
+                const SizedBox(height: 20),
 
-              _dashboardButton(
-                context,
-                icon: Icons.ev_station,
-                text: "Charging Stations",
-                onTap: () => Navigator.push(
+                _dashboardButton(
                   context,
-                  MaterialPageRoute(builder: (context) => const ChargingStations()),
+                  icon: Icons.notifications,
+                  text: "Notifications",
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const Notifications()),
+                  ),
                 ),
-              ),
-              const SizedBox(height: 20),
+                const SizedBox(height: 20),
 
-              _dashboardButton(
-                context,
-                icon: Icons.currency_exchange,
-                text: "Exchange Rates",
-                onTap: () => Navigator.push(
+                _dashboardButton(
                   context,
-                  MaterialPageRoute(builder: (context) => const ExchangeRate()),
+                  icon: Icons.ev_station,
+                  text: "Charging Stations",
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const ChargingStations()),
+                  ),
                 ),
-              ),
-              const SizedBox(height: 20),
+                const SizedBox(height: 20),
 
-              _dashboardButton(
-                context,
-                icon: Icons.account_balance_wallet,
-                text: "Wallet",
-                onTap: _launchMetaMask,
-              ),
-            ],
+                _dashboardButton(
+                  context,
+                  icon: Icons.currency_exchange,
+                  text: "Exchange Rates",
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const ExchangeRate()),
+                  ),
+                ),
+                const SizedBox(height: 20),
+
+                _dashboardButton(
+                  context,
+                  icon: Icons.account_balance_wallet,
+                  text: "Wallet",
+                  onTap: _launchMetaMask,
+                ),
+                const SizedBox(height: 20),
+
+                _dashboardButton(
+                  context,
+                  icon: Icons.bolt,
+                  text: "Charge Vehicle",
+                  onTap: () {
+                    Navigator.pushNamed(context, '/chargeVehicle');
+                  },
+                ),
+              ],
+            ),
           ),
         ),
       ),

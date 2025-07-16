@@ -29,7 +29,7 @@ class SignupSelection extends StatelessWidget {
       // Navigate to EV Owner Signup
       Navigator.push(
         context,
-        MaterialPageRoute(builder: (context) => const EvOwnerSignup()),
+        MaterialPageRoute(builder: (context) => EvOwnerSignup()),
       );
     } else if (hasWallet == false) {
       // Open MetaMask website

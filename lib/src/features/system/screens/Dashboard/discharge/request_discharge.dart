@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../Profile/profile.dart';
+import '../../../../../../services/blockchain_service.dart';
 
 class RequestDischarge extends StatefulWidget {
   const RequestDischarge({super.key});
@@ -19,7 +20,6 @@ class _RequestDischargeState extends State<RequestDischarge> {
   String _priority = 'Medium';
   bool _isLoading = false;
 
-
   Future<void> sendRequest() async {
     if (!_formKey.currentState!.validate()) return;
 
@@ -29,13 +29,24 @@ class _RequestDischargeState extends State<RequestDischarge> {
     final String message = _messageController.text.trim();
 
     setState(() => _isLoading = true);
+
     try {
-      // 1. Update pricing on the blockchain
+      // Convert tokens per kWh to Wei
+      final BigInt pOffPeakWei = BigInt.from(pOffPeak * 1e18);
+      final BigInt pPeakWei = BigInt.from(pPeak * 1e18);
+      final BigInt dischargeRateWei = BigInt.from(0.5 * 1e18); // or get from UI
 
-      // 2. Issue energy tokens to the specified recipient
-      const recipientAddress = '0x859A578b45e4F6bF424002FeC5CAF3E34e45A228';
+      // Call blockchain functions
+      final blockchain = BlockchainService();
+      await blockchain.init();
+      await blockchain.updatePricing(
+        offPeakPrice: pOffPeakWei,
+        peakPrice: pPeakWei,
+        dischargeRate: dischargeRateWei,
+      );
+      await blockchain.mintAdditionalTokens(BigInt.from(energy));
 
-      // 3. Firestore notification
+      // Save notification in Firestore
       await FirebaseFirestore.instance.collection('notifications').add({
         'energy': energy,
         'message': message,
@@ -45,11 +56,10 @@ class _RequestDischargeState extends State<RequestDischarge> {
       });
 
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        content: Text('Request sent to EV owners & blockchain updated'),
+        content: Text('Request sent and tokens minted'),
         backgroundColor: Colors.green,
       ));
 
-      // Clear inputs and reset state
       _energyController.clear();
       _messageController.clear();
       _pOffPeakController.clear();
@@ -94,9 +104,9 @@ class _RequestDischargeState extends State<RequestDischarge> {
               children: [
                 _buildTextField(_energyController, 'Required Energy (kWh)', TextInputType.number),
                 const SizedBox(height: 20),
-                _buildTextField(_pOffPeakController, 'P_offPeak (Token per kWh)', TextInputType.number),
+                _buildTextField(_pOffPeakController, 'P_offPeak (tokens per kWh)', TextInputType.number),
                 const SizedBox(height: 20),
-                _buildTextField(_pPeakController, 'P_peak (Token per kWh)', TextInputType.number),
+                _buildTextField(_pPeakController, 'P_peak (tokens per kWh)', TextInputType.number),
                 const SizedBox(height: 20),
                 _buildTextField(_messageController, 'Message / Reason', TextInputType.text),
                 const SizedBox(height: 20),
@@ -110,6 +120,12 @@ class _RequestDischargeState extends State<RequestDischarge> {
                     labelText: "Priority Level",
                     border: OutlineInputBorder(),
                   ),
+                ),
+                const SizedBox(height: 10),
+                const Text(
+                  "⚠️ Enter token prices in tokens/kWh. (e.g. 0.001)\nConversion to Wei is automatic.",
+                  style: TextStyle(color: Colors.black87, fontSize: 13),
+                  textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 30),
                 ElevatedButton(

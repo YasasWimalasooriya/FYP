@@ -4,7 +4,7 @@ import 'Profile/profile.dart';
 import 'discharge/request_discharge.dart';
 import 'monitor/monitor_responses.dart';
 import 'notifications/notification_logs.dart';
-import 'google_map_screen.dart';
+import 'Maps/google_map_screen.dart';
 
 class SystemOperatorDashboard extends StatefulWidget {
   const SystemOperatorDashboard({super.key});

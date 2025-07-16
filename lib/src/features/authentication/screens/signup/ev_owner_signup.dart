@@ -3,28 +3,18 @@ import 'package:get/get.dart';
 import 'package:v2g_app/src/features/authentication/controllers/signup/ev_signup_controller.dart';
 import '../../../core/screens/Dashboard/dashboard.dart';
 
-class EvOwnerSignup extends StatefulWidget {
-  const EvOwnerSignup({super.key});
+class EvOwnerSignup extends StatelessWidget {
+  EvOwnerSignup({super.key});
 
-  @override
-  State<EvOwnerSignup> createState() => _EvOwnerSignupState();
-}
-
-class _EvOwnerSignupState extends State<EvOwnerSignup> {
-  final _walletAddressController = TextEditingController();
+  final controller = Get.put(EvSignupController());
 
   @override
   Widget build(BuildContext context) {
-    final controller = Get.put(EvSignupController());
-
     return Scaffold(
       backgroundColor: Colors.green[200],
       appBar: AppBar(
         backgroundColor: Colors.green[900],
-        title: const Text(
-          'Electric Vehicle Owner Sign Up',
-          style: TextStyle(color: Colors.white),
-        ),
+        title: const Text('Electric Vehicle Owner Sign Up', style: TextStyle(color: Colors.white)),
         iconTheme: const IconThemeData(color: Colors.white),
       ),
       body: SingleChildScrollView(
@@ -33,17 +23,16 @@ class _EvOwnerSignupState extends State<EvOwnerSignup> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const SizedBox(height: 20),
-            const Text(
-              'Enter your Details Below',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-            ),
+            const Text('Enter your Details Below',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
             const SizedBox(height: 20),
 
             buildTextField(controller.vehicleNo, 'Vehicle Number'),
             buildTextField(controller.name, 'Full Name'),
             buildTextField(controller.tele, 'Phone Number'),
-            buildTextField(controller.fullCapacity, 'Full Capacity Of The Vehicle (kWh)', keyboardType: TextInputType.number),
-            buildTextField(_walletAddressController, 'MetaMask Wallet Address'),
+            buildTextField(controller.fullCapacity, 'Full Capacity Of The Vehicle (kWh)',
+                keyboardType: TextInputType.number),
+            buildTextField(controller.walletAddress, 'MetaMask Wallet Address'),
             buildTextField(controller.email, 'Email'),
             buildTextField(controller.password, 'Password', obscure: true),
             buildTextField(controller.rePassword, 'Re-Enter Password', obscure: true),
@@ -51,43 +40,46 @@ class _EvOwnerSignupState extends State<EvOwnerSignup> {
             const SizedBox(height: 20),
             GestureDetector(
               onTap: () async {
-                // Validate all fields
+                // ✅ Validation
                 if (controller.password.text.isEmpty ||
-                    controller.rePassword.text.isEmpty) {
-                  showPopupDialog(context, 'Password fields cannot be empty!', 'Error!');
+                    controller.rePassword.text.isEmpty ||
+                    controller.password.text != controller.rePassword.text) {
+                  showPopupDialog(context, 'Password mismatch or empty!', 'Error');
                   return;
                 }
-                if (controller.password.text != controller.rePassword.text) {
-                  showPopupDialog(context, 'Passwords do not match!', 'Error!');
-                  return;
-                }
+
                 if (controller.vehicleNo.text.isEmpty ||
                     controller.name.text.isEmpty ||
                     controller.tele.text.isEmpty ||
                     controller.fullCapacity.text.isEmpty ||
-                    _walletAddressController.text.isEmpty ||
+                    controller.walletAddress.text.isEmpty ||
                     controller.email.text.isEmpty) {
-                  showPopupDialog(context, 'Please fill all required fields!', 'Error!');
+                  showPopupDialog(context, 'All fields are required.', 'Error');
                   return;
                 }
 
-                // ✅ Validate wallet address
-                if (!isValidEthereumAddress(_walletAddressController.text.trim())) {
-                  showPopupDialog(context, 'Invalid Ethereum wallet address!', 'Error!');
+                if (!isValidEthereumAddress(controller.walletAddress.text.trim())) {
+                  showPopupDialog(context, 'Invalid Ethereum address.', 'Error');
                   return;
                 }
 
-                // Firebase registration
-                String? errorMessage = await controller.registerUser(
+                // ✅ Firebase registration
+                final error = await controller.registerUser(
                   controller.email.text.trim(),
                   controller.password.text.trim(),
                 );
 
-                if (errorMessage == null) {
-                  await showPopupDialog(context, 'Registration Successful!', 'Success');
-                  Get.offAll(() => const evDash());
+                if (error == null) {
+                  // ✅ Blockchain registration
+                  final chainError = await controller.registerEVOwnerOnBlockchain();
+                  if (chainError == null) {
+                    await showPopupDialog(context, 'Registration Successful!', 'Success');
+                    Get.offAll(() => const evDash());
+                  } else {
+                    showPopupDialog(context, 'Blockchain Error: $chainError', 'Error');
+                  }
                 } else {
-                  showPopupDialog(context, errorMessage, 'Registration Error');
+                  showPopupDialog(context, 'Firebase Error: $error', 'Error');
                 }
               },
               child: Container(
@@ -98,10 +90,7 @@ class _EvOwnerSignupState extends State<EvOwnerSignup> {
                 child: const Padding(
                   padding: EdgeInsets.all(25.0),
                   child: Center(
-                    child: Text(
-                      'NEXT',
-                      style: TextStyle(color: Colors.white, fontSize: 20),
-                    ),
+                    child: Text('NEXT', style: TextStyle(color: Colors.white, fontSize: 20)),
                   ),
                 ),
               ),
@@ -139,17 +128,13 @@ class _EvOwnerSignupState extends State<EvOwnerSignup> {
           title: Text(title),
           content: Text(message),
           actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('OK'),
-            ),
+            TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('OK')),
           ],
         );
       },
     );
   }
 
-  /// ✅ Validate Ethereum address format
   bool isValidEthereumAddress(String address) {
     final regex = RegExp(r'^0x[a-fA-F0-9]{40}$');
     return regex.hasMatch(address);

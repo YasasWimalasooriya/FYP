@@ -13,7 +13,7 @@ class BlockchainService {
   late final DeployedContract _contract;
   late final Credentials _credentials;
   late final EthereumAddress contractAddress;
-  late final EthereumAddress myAddress;
+  late final EthereumAddress operatorAddress;
 
   bool _initialized = false;
 
@@ -22,12 +22,11 @@ class BlockchainService {
 
     _client = Web3Client(rpcUrl, Client());
     _credentials = EthPrivateKey.fromHex(privateKey);
-    myAddress = _credentials.address;
+    operatorAddress = await _credentials.extractAddress();
     contractAddress = EthereumAddress.fromHex(contractAddressHex);
 
-    // 👇 Load ABI as a list (not a wrapped object)
     final abiString = await rootBundle.loadString(abiPath);
-    final abi = jsonEncode(jsonDecode(abiString)); // Just parse and re-encode
+    final abi = jsonEncode(jsonDecode(abiString));
 
     _contract = DeployedContract(
       ContractAbi.fromJson(abi, "V2GEnergySystem"),
@@ -37,10 +36,10 @@ class BlockchainService {
     _initialized = true;
 
     try {
-      final tokenName = await getTokenName();
-      print("✅ Token Name: $tokenName");
+      final name = await getTokenName();
+      print("✅ Connected to contract. Token: $name");
     } catch (e) {
-      print("⚠️ Failed to fetch token name: $e");
+      print("⚠️ Error during blockchain connection: $e");
     }
   }
 
@@ -63,18 +62,34 @@ class BlockchainService {
         parameters: args,
         value: value != null ? EtherAmount.inWei(value) : null,
       ),
-      chainId: 11155111, // Sepolia
+      chainId: 11155111, // Sepolia chain ID
     );
   }
 
   Future<String> registerEVOwner({
-    required String vehicleNo,
-    required BigInt fullCapacity,
+    required String walletAddress,
+    required BigInt maxDischargeCapacity,
     required BigInt minBatteryLevel,
   }) async {
+    final EthereumAddress evAddress = EthereumAddress.fromHex(walletAddress);
     return await sendTransaction(
       'registerEVOwner',
-      [vehicleNo, fullCapacity, minBatteryLevel],
+      [evAddress, maxDischargeCapacity, minBatteryLevel],
+    );
+  }
+
+  Future<String> mintAdditionalTokens(BigInt amount) async {
+    return await sendTransaction('mintAdditionalTokens', [amount]);
+  }
+
+  Future<String> updatePricing({
+    required BigInt offPeakPrice,
+    required BigInt peakPrice,
+    required BigInt dischargeRate,
+  }) async {
+    return await sendTransaction(
+      'updatePricing',
+      [offPeakPrice, peakPrice, dischargeRate],
     );
   }
 
@@ -87,5 +102,28 @@ class BlockchainService {
     final address = EthereumAddress.fromHex(addressHex);
     final result = await callFunction('isRegisteredEVOwner', [address]);
     return result[0] as bool;
+  }
+
+  /// Purchase energy tokens (charging)
+  Future<String> purchaseEnergyTokens({
+    required BigInt energyAmountKWh,
+    required bool isPeakHours,
+  }) async {
+    // Call getCurrentPricing() which returns a struct tuple inside a list
+    final result = await callFunction("getCurrentPricing", []);
+    final pricing = result[0] as List<dynamic>; // unpack struct tuple
+
+    final BigInt offPeakPrice = pricing[0] as BigInt;
+    final BigInt peakPrice = pricing[1] as BigInt;
+
+    final BigInt pricePerKWh = isPeakHours ? peakPrice : offPeakPrice;
+    final BigInt totalCost = energyAmountKWh * pricePerKWh;
+
+    // Pass bool directly, since contract expects bool type for 2nd param
+    return await sendTransaction(
+      'purchaseEnergyTokens',
+      [energyAmountKWh, isPeakHours],
+      value: totalCost,
+    );
   }
 }

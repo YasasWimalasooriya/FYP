@@ -1,22 +1,23 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:get/get.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import '../../../../../services/blockchain_service.dart';
 
 class EvSignupController extends GetxController {
   final vehicleNo = TextEditingController();
   final name = TextEditingController();
-  final email = TextEditingController();
   final tele = TextEditingController();
   final fullCapacity = TextEditingController();
-  final walletAddress = TextEditingController();
+  final minBattery = TextEditingController();
+  final email = TextEditingController();
   final password = TextEditingController();
   final rePassword = TextEditingController();
 
   final _auth = FirebaseAuth.instance;
   final _firestore = FirebaseFirestore.instance;
 
+  /// Register user in Firebase
   Future<String?> registerUser(String email, String password) async {
     try {
       final userCredential = await _auth.createUserWithEmailAndPassword(
@@ -24,18 +25,18 @@ class EvSignupController extends GetxController {
         password: password,
       );
 
-      String uid = userCredential.user!.uid;
-
-      await _firestore.collection("users").doc(uid).set({
-        "uid": uid,
+      // Save to Firestore
+      await _firestore.collection("ev_owners").doc(userCredential.user!.uid).set({
+        "uid": userCredential.user!.uid,
         "vehicleNo": vehicleNo.text.trim(),
         "name": name.text.trim(),
+        "telephone": tele.text.trim(),
+        "fullCapacity": fullCapacity.text.trim(),
+        "minBatteryLevel": minBattery.text.trim(),
+        "walletAddress": "", // to be filled after blockchain registration
         "email": email.trim(),
-        "phone": tele.text.trim(),
-        "vehicleCapacity": fullCapacity.text.trim(),
-        "walletAddress": walletAddress.text.trim(),
-        "createdAt": FieldValue.serverTimestamp(),
         "role": "ev_owner",
+        "timestamp": FieldValue.serverTimestamp(),
       });
 
       return null;
@@ -44,19 +45,24 @@ class EvSignupController extends GetxController {
     }
   }
 
-  Future<String?> registerEVOwnerOnBlockchain() async {
+  /// Register EV owner on blockchain
+  Future<String?> registerEVOwnerOnBlockchain({
+    required String walletAddress,
+  }) async {
     try {
       final blockchain = BlockchainService();
       await blockchain.init();
 
-      final BigInt maxCapacity = BigInt.parse(fullCapacity.text.trim());
-      final BigInt minBattery = maxCapacity ~/ BigInt.from(5); // 20% safety buffer
+      final BigInt maxDischarge = BigInt.parse(fullCapacity.text.trim());
+      final BigInt minBatteryLevel = BigInt.parse(minBattery.text.trim());
 
-      return await blockchain.registerEVOwner(
-        walletAddress: walletAddress.text.trim(),
-        maxDischargeCapacity: maxCapacity,
-        minBatteryLevel: minBattery,
+      await blockchain.registerEVOwner(
+        walletAddress: walletAddress,
+        maxDischargeCapacity: maxDischarge,
+        minBatteryLevel: minBatteryLevel,
       );
+
+      return null; // success
     } catch (e) {
       return e.toString();
     }
