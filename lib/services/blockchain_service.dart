@@ -17,40 +17,72 @@ class BlockchainService {
 
   bool _initialized = false;
 
-  Future<void> init() async {
-    if (_initialized) return;
-
-    _client = Web3Client(rpcUrl, Client());
-    _credentials = EthPrivateKey.fromHex(privateKey);
-    operatorAddress = await _credentials.extractAddress();
-    contractAddress = EthereumAddress.fromHex(contractAddressHex);
-
-    final abiString = await rootBundle.loadString(abiPath);
-    final abi = jsonEncode(jsonDecode(abiString));
-
-    _contract = DeployedContract(
-      ContractAbi.fromJson(abi, "V2GEnergySystem"),
-      contractAddress,
-    );
-
-    _initialized = true;
-
+  Future<bool> init() async {
+    print("🔧 Blockchain init started");
     try {
+      _client = Web3Client(rpcUrl, Client());
+      _credentials = EthPrivateKey.fromHex(privateKey);
+      operatorAddress = await _credentials.extractAddress();
+      contractAddress = EthereumAddress.fromHex(contractAddressHex);
+
+      print("📦 Loading ABI...");
+      final abiString = await rootBundle.loadString(abiPath);
+      final abi = jsonEncode(jsonDecode(abiString));
+
+      _contract = DeployedContract(
+        ContractAbi.fromJson(abi, "V2GEnergySystem"),
+        contractAddress,
+      );
+
       final name = await getTokenName();
-      print("✅ Connected to contract. Token: $name");
-    } catch (e) {
-      print("⚠️ Error during blockchain connection: $e");
+      _initialized = true;
+      print("✅ Contract loaded. Token name: $name");
+    } catch (e, st) {
+      print("❌ Blockchain init error: $e");
+      print("📜 Stacktrace: $st");
+      _initialized = false;
+    }
+
+    return _initialized;
+  }
+
+  // Future<List<dynamic>> callFunction(String name, List<dynamic> args) async {
+  //   try {
+  //     print("🔍 Trying to get function: $name from contract");
+  //     final function = _contract.function(name);
+  //     print("📞 Calling function $name with params: $args");
+  //     final result = await _client.call(
+  //       contract: _contract,
+  //       function: function,
+  //       params: args,
+  //     );
+  //     print("✅ Result from $name: $result");
+  //     return result;
+  //   } catch (e, st) {
+  //     print("❌ callFunction error for $name: $e");
+  //     print("📜 Stacktrace: $st");
+  //     rethrow; // <-- IMPORTANT: don’t silently fail
+  //   }
+  // }
+  Future<List<dynamic>> callFunction(String name, List<dynamic> args) async {
+    try {
+      print("🔍 Trying to get function: $name from contract");
+      final function = _contract.function(name);
+      print("📞 Calling function $name with params: $args");
+      final result = await _client.call(
+        contract: _contract,
+        function: function,
+        params: args,
+      );
+      print("✅ Result from $name: $result");
+      return result;
+    } catch (e, st) {
+      print("❌ callFunction error for $name: $e");
+      print("📜 Stacktrace: $st");
+      rethrow; // <-- IMPORTANT: don’t silently fail
     }
   }
 
-  Future<List<dynamic>> callFunction(String name, List<dynamic> args) async {
-    final function = _contract.function(name);
-    return await _client.call(
-      contract: _contract,
-      function: function,
-      params: args,
-    );
-  }
 
   Future<String> sendTransaction(String name, List<dynamic> args, {BigInt? value}) async {
     final function = _contract.function(name);
@@ -95,6 +127,7 @@ class BlockchainService {
 
   Future<String> getTokenName() async {
     final result = await callFunction('name', []);
+    print(result.toString());
     return result.first as String;
   }
 

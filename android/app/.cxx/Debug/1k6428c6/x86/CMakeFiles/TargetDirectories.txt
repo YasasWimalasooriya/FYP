@@ -1,0 +1,2 @@
+D:/projects/Naita/FYP/android/app/.cxx/Debug/1k6428c6/x86/CMakeFiles/edit_cache.dir
+D:/projects/Naita/FYP/android/app/.cxx/Debug/1k6428c6/x86/CMakeFiles/rebuild_cache.dir
