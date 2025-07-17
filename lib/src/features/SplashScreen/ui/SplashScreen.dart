@@ -20,7 +20,7 @@ class _SplashscreenState extends State<Splashscreen> {
   }
 
   Future<bool> getData() async {
-    return await BlockchainService().init();
+     return await BlockchainService().init();
   }
 
   void _navigateToIntroPage() {
@@ -36,12 +36,23 @@ class _SplashscreenState extends State<Splashscreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Color(0xFF040B19),
       body: Center(
         child: FutureBuilder<bool>(
           future: initFuture,
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
-              return const CircularProgressIndicator();
+              return Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Image(image: AssetImage("assets/images/loading.gif")),
+                  const CircularProgressIndicator(),
+                  Padding(
+                    padding: const EdgeInsets.all(10.0),
+                    child: Text("Please wait...",style: TextStyle(color: Colors.white.withValues(alpha: 0.5)),),
+                  )
+                ],
+              );
             } else if (snapshot.connectionState == ConnectionState.done) {
               if (snapshot.hasData && snapshot.data == true) {
                 WidgetsBinding.instance.addPostFrameCallback((_) {

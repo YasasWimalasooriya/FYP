@@ -19,8 +19,10 @@ class _NotificationsState extends State<Notifications> {
 
     final String userId = firebaseUser.uid;
     final String response = accepted ? "accepted" : "declined";
-
-    if (accepted) {
+    print(" user id $userId");
+    print(" response $response");
+    if (accepted){
+      print("accepted true");
       // Navigate to Discharge Confirmation FIRST
       await Navigator.push(
         context,

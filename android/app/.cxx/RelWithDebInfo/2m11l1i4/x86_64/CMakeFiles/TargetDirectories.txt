@@ -1,0 +1,2 @@
+D:/projects/Naita/FYP/android/app/.cxx/RelWithDebInfo/2m11l1i4/x86_64/CMakeFiles/edit_cache.dir
+D:/projects/Naita/FYP/android/app/.cxx/RelWithDebInfo/2m11l1i4/x86_64/CMakeFiles/rebuild_cache.dir

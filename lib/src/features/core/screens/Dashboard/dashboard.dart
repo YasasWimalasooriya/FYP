@@ -174,7 +174,7 @@ class _evDashState extends State<evDash> {
       body: SafeArea(
         child: SingleChildScrollView(
           child: Padding(
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.all(0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
@@ -186,44 +186,54 @@ class _evDashState extends State<evDash> {
                 ),
                 const SizedBox(height: 20),
 
-                _dashboardButton(
-                  context,
-                  icon: Icons.notifications,
-                  text: "Notifications",
-                  onTap: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => const Notifications()),
-                  ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    _dashboardButton(
+                      context,
+                      icon: Icons.notifications,
+                      text: "Notifications",
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const Notifications()),
+                      ),
+                    ),
+                    const SizedBox(width: 20),
+
+                    _dashboardButton(
+                      context,
+                      icon: Icons.ev_station,
+                      text: "Charging Stations",
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const ChargingStations()),
+                      ),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 20),
 
-                _dashboardButton(
-                  context,
-                  icon: Icons.ev_station,
-                  text: "Charging Stations",
-                  onTap: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => const ChargingStations()),
-                  ),
-                ),
-                const SizedBox(height: 20),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    _dashboardButton(
+                      context,
+                      icon: Icons.currency_exchange,
+                      text: "Exchange Rates",
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const ExchangeRate()),
+                      ),
+                    ),
+                    const SizedBox(width: 20),
 
-                _dashboardButton(
-                  context,
-                  icon: Icons.currency_exchange,
-                  text: "Exchange Rates",
-                  onTap: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => const ExchangeRate()),
-                  ),
-                ),
-                const SizedBox(height: 20),
-
-                _dashboardButton(
-                  context,
-                  icon: Icons.account_balance_wallet,
-                  text: "Wallet",
-                  onTap: _launchMetaMask,
+                    _dashboardButton(
+                      context,
+                      icon: Icons.account_balance_wallet,
+                      text: "Wallet",
+                      onTap: _launchMetaMask,
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 20),
 
@@ -248,21 +258,21 @@ class _evDashState extends State<evDash> {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        height: 100,
-        width: 250,
+        height: 150,
+        width: 150,
         decoration: BoxDecoration(
           color: Colors.green[900],
           borderRadius: BorderRadius.circular(10),
         ),
         child: Center(
-          child: Row(
+          child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Icon(icon, color: Colors.white, size: 28),
-              const SizedBox(width: 12),
+              const SizedBox(width: 12,height: 10,),
               Text(
                 text,
-                style: const TextStyle(color: Colors.white, fontSize: 20),
+                style: const TextStyle(color: Colors.white, fontSize: 15),
               ),
             ],
           ),

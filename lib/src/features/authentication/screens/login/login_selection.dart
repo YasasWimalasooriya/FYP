@@ -8,7 +8,10 @@ class login_selection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    double width = MediaQuery.of(context).size.width;
+    double height = MediaQuery.of(context).size.height;
     return Scaffold(
+
       backgroundColor: Colors.green[200],
       appBar: AppBar(
         backgroundColor: Colors.green[900],
@@ -19,19 +22,20 @@ class login_selection extends StatelessWidget {
       ),
         iconTheme: const IconThemeData(color: Colors.white),
       ),
-      body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 40),
+      body: SingleChildScrollView(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.start,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             // Add image2 at the top of the page
-            Image.asset(
-              'assets/images/image2.jpg',
-              height: 250,
-              width: 350,
-            ),
-            const SizedBox(height:2),
+            Container(
+              width: width,
+              height: height*0.2,
+              decoration: BoxDecoration(
+                image: DecorationImage( image: AssetImage("assets/images/loginCover.png"),fit: BoxFit.cover,),)
+              ),
+
+             SizedBox(height:height*0.1),
 
             GestureDetector(
               onTap: () => Navigator.push(
@@ -41,12 +45,13 @@ class login_selection extends StatelessWidget {
                 ),
               ),
               child: Container(
+                width: width*0.7,
                 decoration: BoxDecoration(
                   color: Colors.green[900],
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: const Padding(
-                  padding: EdgeInsets.all(25.0),
+                  padding: EdgeInsets.all(15.0),
                   child: Center(
                     child: Text(
                       'Electric Vehicle Owner',
@@ -60,15 +65,16 @@ class login_selection extends StatelessWidget {
               ),
             ),
 
-            const SizedBox(height: 30),  // Space between the two boxes
+            const SizedBox(height: 10),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text("or"),
+              ],
+            ),// Space between the two boxes
+            const SizedBox(height: 10),
 
-            Image.asset(
-              'assets/images/image3.jpg',
-              height: 300,
-              width: 250,
-            ),
-
-            const SizedBox(height: 1), // Space between image3 and the next button
+            // Space between image3 and the next button
 
             GestureDetector(
               onTap: () => Navigator.push(
@@ -78,12 +84,13 @@ class login_selection extends StatelessWidget {
                 ),
               ),
               child: Container(
+                width: width*0.7,
                 decoration: BoxDecoration(
                   color: Colors.green[900],
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: const Padding(
-                  padding: EdgeInsets.all(25.0),
+                  padding: EdgeInsets.all(15.0),
                   child: Center(
                     child: Text(
                       'System Operator',
